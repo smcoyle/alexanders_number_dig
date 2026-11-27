@@ -216,19 +216,45 @@
       }
     } else if (state.problemIndex === 0 && state.mode === "foreman" && state.opMode !== "sub") {
       a = 1; b = 8; c = 9; template = "a+?=c"; op = "+";
+    } else if (state.mode === "master") {
+      // Master mode goes into the hundreds! Mix clean multiples of 5/10 with exact 3-digit sums
+      const friendly = Math.random() < 0.6;
+      if (chooseSub) {
+        op = "-";
+        if (friendly) {
+          a = randInt(24, 92) * 10 + (Math.random() < 0.5 ? 0 : 5);
+          c = randInt(10, Math.floor((a - 50) / 10)) * 10;
+        } else {
+          a = randInt(220, 940);
+          c = randInt(105, a - 45);
+        }
+        b = a - c;
+        template = Math.random() < 0.6 ? "a-?=c" : "a-b=?";
+      } else {
+        op = "+";
+        if (friendly) {
+          a = randInt(10, 50) * 10 + (Math.random() < 0.4 ? 5 : 0);
+          b = randInt(10, 45) * 10;
+          c = a + b;
+        } else {
+          c = randInt(240, 960);
+          a = randInt(102, c - 60);
+          b = c - a;
+        }
+        const roll = Math.random();
+        if (roll < 0.52) template = "a+?=c";
+        else if (roll < 0.78) template = "?+b=c";
+        else template = "a+b=?";
+      }
     } else if (chooseSub) {
       op = "-";
-      const maxMinuend = state.mode === "master" ? 20 : 10;
-      const minMinuend = state.mode === "master" ? 8 : 4;
-      a = randInt(minMinuend, maxMinuend);
+      a = randInt(4, 10);
       c = randInt(1, a - 1);
       b = a - c;
       template = Math.random() < 0.6 ? "a-?=c" : "a-b=?";
     } else {
       op = "+";
-      const maxSum = state.mode === "master" ? 20 : 10;
-      const minSum = state.mode === "master" ? 8 : 4;
-      c = randInt(minSum, maxSum);
+      c = randInt(4, 10);
       a = randInt(1, c - 1);
       b = c - a;
 
@@ -248,22 +274,38 @@
     state.problem = { template, op, a, b, c, answer, solved: false, tryValue: null };
 
     const targetCount = state.mode === "age5" ? 4 : 6;
-    const maxVal = state.mode === "age5" ? 9 : state.mode === "master" ? 20 : 10;
+    const maxVal = state.mode === "age5" ? 9 : state.mode === "master" ? 999 : 10;
     const numbers = new Set([answer]);
 
-    if (op === "+" && template !== "a+b=?" && c !== answer && c <= maxVal) {
-      numbers.add(c);
-    }
-    if (op === "-" && a !== answer && a <= maxVal) {
-      numbers.add(a);
-    }
-    if (answer + 1 <= maxVal) numbers.add(answer + 1);
-    if (answer - 1 >= 1) numbers.add(answer - 1);
+    if (state.mode === "master") {
+      const offsets = [-100, 100, -10, 10, -20, 20, -5, 5, -1, 1];
+      if (op === "+" && template !== "a+b=?" && c <= maxVal) numbers.add(c);
+      if (op === "-" && a <= maxVal) numbers.add(a);
+      for (const off of shuffle(offsets)) {
+        if (numbers.size >= targetCount) break;
+        const cand = answer + off;
+        if (cand >= 15 && cand <= maxVal) numbers.add(cand);
+      }
+      let guard = 0;
+      while (numbers.size < targetCount && guard < 60) {
+        guard++;
+        numbers.add(randInt(100, 899));
+      }
+    } else {
+      if (op === "+" && template !== "a+b=?" && c !== answer && c <= maxVal) {
+        numbers.add(c);
+      }
+      if (op === "-" && a !== answer && a <= maxVal) {
+        numbers.add(a);
+      }
+      if (answer + 1 <= maxVal) numbers.add(answer + 1);
+      if (answer - 1 >= 1) numbers.add(answer - 1);
 
-    let guard = 0;
-    while (numbers.size < targetCount && guard < 60) {
-      guard++;
-      numbers.add(randInt(1, maxVal));
+      let guard = 0;
+      while (numbers.size < targetCount && guard < 60) {
+        guard++;
+        numbers.add(randInt(1, maxVal));
+      }
     }
 
     buildMoundsFromNumbers(shuffle(Array.from(numbers)).slice(0, targetCount));
@@ -490,50 +532,56 @@
     els["blueprint-subtitle"].textContent = p.op === "-" ? "SUBTRACTION CUT" : "SPAN BLUEPRINT";
 
     const slotText = p.solved ? p.answer : p.tryValue !== null ? p.tryValue : "?";
-    const slotCls = p.solved
-      ? "eq-drop-slot filled-correct"
-      : p.tryValue !== null
-      ? "eq-drop-slot filled-wrong"
-      : "eq-drop-slot";
+    const slotDigitCls = (p.solved ? p.answer : p.tryValue || p.answer) >= 100 ? " three-digit" : "";
+    const aDigitCls = p.a >= 100 ? " three-digit" : "";
+    const bDigitCls = p.b >= 100 ? " three-digit" : "";
+    const cDigitCls = p.c >= 100 ? " three-digit" : "";
+
+    const slotCls =
+      (p.solved
+        ? "eq-drop-slot filled-correct"
+        : p.tryValue !== null
+        ? "eq-drop-slot filled-wrong"
+        : "eq-drop-slot") + slotDigitCls;
 
     if (p.template === "a+?=c") {
       els["equation-row"].innerHTML = `
-        <div class="eq-card eq-known-a">${p.a}</div>
+        <div class="eq-card eq-known-a${aDigitCls}">${p.a}</div>
         <div class="eq-card eq-operator">+</div>
         <div id="eq-drop-slot" class="${slotCls}">${slotText}</div>
         <div class="eq-card eq-operator">=</div>
-        <div class="eq-card eq-known-b">${p.c}</div>
+        <div class="eq-card eq-known-b${cDigitCls}">${p.c}</div>
       `;
     } else if (p.template === "?+b=c") {
       els["equation-row"].innerHTML = `
         <div id="eq-drop-slot" class="${slotCls}">${slotText}</div>
         <div class="eq-card eq-operator">+</div>
-        <div class="eq-card eq-known-a">${p.b}</div>
+        <div class="eq-card eq-known-a${bDigitCls}">${p.b}</div>
         <div class="eq-card eq-operator">=</div>
-        <div class="eq-card eq-known-b">${p.c}</div>
+        <div class="eq-card eq-known-b${cDigitCls}">${p.c}</div>
       `;
     } else if (p.template === "a+b=?") {
       els["equation-row"].innerHTML = `
-        <div class="eq-card eq-known-a">${p.a}</div>
+        <div class="eq-card eq-known-a${aDigitCls}">${p.a}</div>
         <div class="eq-card eq-operator">+</div>
-        <div class="eq-card eq-known-a">${p.b}</div>
+        <div class="eq-card eq-known-a${bDigitCls}">${p.b}</div>
         <div class="eq-card eq-operator">=</div>
         <div id="eq-drop-slot" class="${slotCls}">${slotText}</div>
       `;
     } else if (p.template === "a-?=c") {
       els["equation-row"].innerHTML = `
-        <div class="eq-card eq-known-a">${p.a}</div>
+        <div class="eq-card eq-known-a${aDigitCls}">${p.a}</div>
         <div class="eq-card eq-operator">−</div>
         <div id="eq-drop-slot" class="${slotCls}">${slotText}</div>
         <div class="eq-card eq-operator">=</div>
-        <div class="eq-card eq-known-b">${p.c}</div>
+        <div class="eq-card eq-known-b${cDigitCls}">${p.c}</div>
       `;
     } else {
       // a - b = ?
       els["equation-row"].innerHTML = `
-        <div class="eq-card eq-known-a">${p.a}</div>
+        <div class="eq-card eq-known-a${aDigitCls}">${p.a}</div>
         <div class="eq-card eq-operator">−</div>
-        <div class="eq-card eq-known-a">${p.b}</div>
+        <div class="eq-card eq-known-a${bDigitCls}">${p.b}</div>
         <div class="eq-card eq-operator">=</div>
         <div id="eq-drop-slot" class="${slotCls}">${slotText}</div>
       `;
@@ -542,7 +590,85 @@
     renderBeamComparator(p);
   }
 
+  function renderScaledBeamComparator(p, pulseMissing = false) {
+    const pulseCls = pulseMissing ? " hint-pulse" : "";
+    const segs = [];
+    let tickMid = "";
+    let tickMax = p.c;
+
+    if (p.op === "-") {
+      tickMax = p.a;
+      tickMid = String(p.c);
+      if (p.template === "a-?=c") {
+        if (p.solved) {
+          segs.push(`<div class="beam-scaled-seg steel-solved" style="flex:${p.c} 1 0">${p.c}</div>`);
+          segs.push(`<div class="beam-scaled-seg steel-removed" style="flex:${p.b} 1 0">−${p.b}</div>`);
+        } else if (p.tryValue !== null) {
+          const left = Math.max(0, p.a - p.tryValue);
+          if (left > 0) segs.push(`<div class="beam-scaled-seg steel-a" style="flex:${left} 1 0">${left}</div>`);
+          segs.push(`<div class="beam-scaled-seg ${p.tryValue > p.b ? "steel-overflow" : "steel-try"}" style="flex:${Math.max(10, p.tryValue)} 1 0">−${p.tryValue}</div>`);
+        } else {
+          segs.push(`<div class="beam-scaled-seg steel-a" style="flex:${p.c} 1 0">${p.c}</div>`);
+          segs.push(`<div class="beam-scaled-seg steel-trim${pulseCls}" data-scaled-hint="1" style="flex:${p.b} 1 0">−?</div>`);
+        }
+        els["comparator-hint-label"].textContent = p.solved
+          ? `Clean cut! ${p.a} − ${p.b} = ${p.c}!`
+          : `Scaled Girder: Cut down from ${p.a} to ${p.c}! Tap −? for a hint!`;
+      } else {
+        if (p.solved) {
+          segs.push(`<div class="beam-scaled-seg steel-solved" style="flex:${p.c} 1 0">${p.c}</div>`);
+          segs.push(`<div class="beam-scaled-seg steel-removed" style="flex:${p.b} 1 0">−${p.b}</div>`);
+        } else {
+          segs.push(`<div class="beam-scaled-seg steel-missing${pulseCls}" data-scaled-hint="1" style="flex:${p.c} 1 0">? left</div>`);
+          segs.push(`<div class="beam-scaled-seg steel-removed" style="flex:${p.b} 1 0">−${p.b}</div>`);
+        }
+        els["comparator-hint-label"].textContent = p.solved
+          ? `Clean cut! ${p.a} − ${p.b} = ${p.c}!`
+          : `Scaled Girder: Start at ${p.a}, take away ${p.b}!`;
+      }
+    } else {
+      const known = p.template === "?+b=c" ? p.b : p.a;
+      const missing = p.template === "a+b=?" ? p.b : p.answer;
+      tickMid = String(known);
+      if (p.solved) {
+        segs.push(`<div class="beam-scaled-seg steel-a" style="flex:${known} 1 0">${known}</div>`);
+        segs.push(`<div class="beam-scaled-seg steel-solved" style="flex:${missing} 1 0">${missing}</div>`);
+      } else if (p.template === "a+b=?") {
+        segs.push(`<div class="beam-scaled-seg steel-a" style="flex:${p.a} 1 0">${p.a}</div>`);
+        segs.push(`<div class="beam-scaled-seg steel-missing${pulseCls}" data-scaled-hint="1" style="flex:${p.b} 1 0">+ ${p.b}</div>`);
+        tickMax = "?";
+      } else if (p.tryValue !== null) {
+        const over = known + p.tryValue > p.c;
+        segs.push(`<div class="beam-scaled-seg steel-a" style="flex:${known} 1 0">${known}</div>`);
+        segs.push(`<div class="beam-scaled-seg ${over ? "steel-overflow" : "steel-try"}" style="flex:${p.tryValue} 1 0">+ ${p.tryValue}</div>`);
+        tickMax = `${p.c} (got ${known + p.tryValue})`;
+      } else {
+        segs.push(`<div class="beam-scaled-seg steel-a" style="flex:${known} 1 0">${known}</div>`);
+        segs.push(`<div class="beam-scaled-seg steel-missing${pulseCls}" data-scaled-hint="1" style="flex:${missing} 1 0">?</div>`);
+      }
+      els["comparator-hint-label"].textContent = p.solved
+        ? `Solid span! ${known} + ${missing} = ${p.c}!`
+        : p.template === "a+b=?"
+        ? `Scaled Girder: Combine ${p.a} + ${p.b}!`
+        : `Scaled Girder: Start at ${known}, reach ${p.c}! Tap ? for a hint!`;
+    }
+
+    els["beam-track-area"].innerHTML = `
+      <div class="beam-scaled-row">${segs.join("")}</div>
+      <div class="beam-scaled-ticks">
+        <span>0</span>
+        <span>${tickMid}</span>
+        <span>${tickMax}</span>
+      </div>
+    `;
+  }
+
   function renderBeamComparator(p, pulseMissing = false) {
+    const maxScale = Math.max(p.a || 0, p.b || 0, p.c || 0, p.tryValue || 0);
+    if (maxScale > 20) {
+      renderScaledBeamComparator(p, pulseMissing);
+      return;
+    }
     const cells = [];
     const ticks = [];
 
@@ -753,17 +879,27 @@
             </div>`;
         }
 
-        const pips = Array.from({ length: Math.min(m.value, 10) })
-          .map(() => `<span class="unit-pip"></span>`)
-          .join("");
+        let subBadge;
+        if (m.value > 20) {
+          const h = Math.floor(m.value / 100);
+          const t = Math.floor((m.value % 100) / 10);
+          const o = m.value % 10;
+          subBadge = `<div class="place-value-tags">${h}H • ${t}T • ${o}O</div>`;
+        } else {
+          const pips = Array.from({ length: Math.min(m.value, 10) })
+            .map(() => `<span class="unit-pip"></span>`)
+            .join("");
+          subBadge = `<div class="block-unit-pips">${pips}</div>`;
+        }
         const usedCls = m.used ? "used-correct" : "";
         const decoyCls = m.pushed ? "dimmed-decoy" : "";
+        const digitCls = m.value >= 100 ? "three-digit" : "";
 
         return `
           <div class="mound-slot" data-mound-slot="${m.id}">
-            <div class="revealed-block ${usedCls} ${decoyCls}" data-block-id="${m.id}" data-value="${m.value}" role="button" tabindex="0" aria-label="Number beam ${m.value} — tap or drag into blueprint">
+            <div class="revealed-block ${usedCls} ${decoyCls} ${digitCls}" data-block-id="${m.id}" data-value="${m.value}" role="button" tabindex="0" aria-label="Number beam ${m.value} — tap or drag into blueprint">
               <span class="block-number">${m.value}</span>
-              <div class="block-unit-pips">${pips}</div>
+              ${subBadge}
               <span class="block-action-hint">TAP OR DRAG</span>
             </div>
           </div>`;
@@ -1311,10 +1447,17 @@
         return;
       }
       renderBeamComparator(p, true);
-      const hintText =
-        p.op === "-"
-          ? `Greta's ruler is lit! Tap the ${p.answer} pulsing boxes to count!`
-          : `Tap the ${p.answer} pulsing empty boxes to reach ${p.c}!`;
+      let hintText;
+      if (Math.max(p.a, p.b, p.c) > 20) {
+        const h = Math.floor(p.answer / 100);
+        const t = Math.floor((p.answer % 100) / 10);
+        hintText = `Greta's girder is lit! Check ${h} hundreds and ${t} tens!`;
+      } else {
+        hintText =
+          p.op === "-"
+            ? `Greta's ruler is lit! Tap the ${p.answer} pulsing boxes to count!`
+            : `Tap the ${p.answer} pulsing empty boxes to reach ${p.c}!`;
+      }
       setFeedback(hintText, "neutral");
       CG.audio.speak(hintText, { persona: "amy", priority: true });
       return;
@@ -1626,15 +1769,28 @@
     const firstUnlock = () => {
       CG.audio.unlockAndStartMusic();
       window.removeEventListener("pointerdown", firstUnlock);
+      window.removeEventListener("touchstart", firstUnlock);
       window.removeEventListener("keydown", firstUnlock);
     };
     window.addEventListener("pointerdown", firstUnlock, { passive: true });
+    window.addEventListener("touchstart", firstUnlock, { passive: true });
     window.addEventListener("keydown", firstUnlock, { passive: true });
 
     setupPointerDragging();
 
-    // Tap-to-count blueprint cells (works for both addition & subtraction!)
+    // Tap-to-count blueprint cells OR scaled hundreds hint
     els["beam-track-area"].addEventListener("click", (e) => {
+      const scaled = e.target.closest("[data-scaled-hint]");
+      if (scaled && state.problem) {
+        const p = state.problem;
+        CG.audio.playCountNote(3);
+        const h = Math.floor(p.answer / 100);
+        const t = Math.floor((p.answer % 100) / 10);
+        const hint = `Hint: Look for ${h} hundreds and ${t} tens! (${p.op === "-" ? `${p.a} to ${p.c}` : `${p.template === "?+b=c" ? p.b : p.a} up to ${p.c}`})`;
+        setFeedback(hint, "neutral");
+        CG.audio.speak(`Check the hundreds place and tens place, builder!`, { persona: "amy", priority: true });
+        return;
+      }
       const cell = e.target.closest(".beam-cell[data-count-step]");
       if (!cell) return;
       handleCountBoxTap(Number(cell.dataset.countStep));

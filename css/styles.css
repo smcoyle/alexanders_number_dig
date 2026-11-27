@@ -340,6 +340,7 @@ body.age5-mode .beam-cell {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 6px;
+  min-width: 0;
   min-height: 0;
   position: relative;
   overflow: hidden;
@@ -506,6 +507,7 @@ body.age5-mode .beam-cell {
   grid-template-rows: auto auto 1fr auto;
   gap: 6px;
   position: relative;
+  min-width: 0;
   min-height: 0;
   color: #fff;
 }
@@ -660,6 +662,107 @@ body.age5-mode .beam-cell {
   color: #ffd43b;
   font-size: 2.1rem;
   padding: 0;
+}
+
+.eq-card.three-digit,
+.eq-drop-slot.three-digit {
+  font-size: 1.58rem;
+  min-width: 78px;
+  padding: 0 10px;
+}
+
+.revealed-block.three-digit .block-number {
+  font-size: 1.75rem;
+}
+
+.place-value-tags {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #183153;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-top: 2px;
+}
+
+/* Proportional Scaled Steel Girder Bar (for 100s mode) */
+.beam-scaled-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  height: 32px;
+}
+
+.beam-scaled-seg {
+  min-width: 44px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.84rem;
+  font-weight: 900;
+  padding: 0 6px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.beam-scaled-seg.steel-a {
+  background: linear-gradient(180deg, #74c0fc, #228be6);
+  border: 2px solid #e7f5ff;
+  color: #fff;
+}
+
+.beam-scaled-seg.steel-missing {
+  background: rgba(255, 224, 102, 0.18);
+  border: 2px dashed #ffe066;
+  color: #ffe066;
+  cursor: pointer;
+}
+
+.beam-scaled-seg.steel-trim {
+  background: rgba(255, 107, 107, 0.24);
+  border: 2px dashed #ff8787;
+  color: #ffd8d8;
+  cursor: pointer;
+}
+
+.beam-scaled-seg.steel-removed {
+  background: rgba(255, 107, 107, 0.14);
+  border: 2px dotted #ff8787;
+  color: #ffc9c9;
+  text-decoration: line-through;
+}
+
+.beam-scaled-seg.steel-try {
+  background: linear-gradient(180deg, #ffd43b, #f08c00);
+  border: 2px solid #fff;
+  color: #211500;
+}
+
+.beam-scaled-seg.steel-overflow {
+  background: linear-gradient(180deg, #ff8787, #e03131);
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.beam-scaled-seg.steel-solved {
+  background: linear-gradient(180deg, #69db7c, #2b8a3e);
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.beam-scaled-seg.hint-pulse {
+  animation: pulseCell 0.7s ease-in-out infinite alternate;
+}
+
+.beam-scaled-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #a5d8ff;
+  padding: 0 2px;
 }
 
 .eq-drop-slot {
@@ -2284,9 +2387,8 @@ body.age5-mode .beam-cell {
 /* Treasure Popup Toast */
 .treasure-toast {
   position: fixed;
-  left: 50%;
+  left: 16px;
   top: 66px;
-  transform: translateX(-50%);
   z-index: 90;
   pointer-events: none;
   background: linear-gradient(135deg, #fff9db, #ffe066);
@@ -2320,8 +2422,8 @@ body.age5-mode .beam-cell {
 }
 
 @keyframes toastSlideIn {
-  from { transform: translate(-50%, -18px) scale(0.88); opacity: 0; }
-  to { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  from { transform: translateY(-18px) scale(0.88); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* ==========================================================================
@@ -2344,32 +2446,255 @@ body.age5-mode .beam-cell {
 }
 
 @media (max-width: 820px) {
-  .app-shell {
-    grid-template-rows: auto auto 1fr;
+  html,
+  body {
+    touch-action: pan-y;
     overflow-y: auto;
+  }
+
+  .app-shell {
+    height: auto;
+    min-height: 100dvh;
+    grid-template-rows: auto auto 1fr;
+    overflow-y: visible;
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .hud-bar {
+    flex-wrap: wrap;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .hud-left,
+  .hud-center,
+  .hud-right {
+    gap: 5px;
+    flex-wrap: wrap;
   }
 
   .upper-stage {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .project-canvas-wrap {
+    height: 145px;
   }
 
   .crew-lanes {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px 8px 4px;
+  }
+
+  .crew-card {
+    min-height: 48px;
+    padding: 4px 6px;
+  }
+
+  .crew-svg-slot {
+    width: 40px;
+    height: 30px;
+  }
+
+  .crew-card-label strong {
+    font-size: 0.78rem;
+  }
+
+  .crew-card-label small {
+    font-size: 0.66rem;
+  }
+
+  .drive-hero-btn {
+    padding: 5px 7px;
+    font-size: 0.7rem;
+  }
+
+  .mega-dig-btn {
+    min-height: 48px;
+    padding: 6px 10px;
   }
 
   .dig-ground {
-    padding: 12px;
+    padding: 12px 10px 88px;
+    min-height: 270px;
   }
 
   .alexander-actor {
-    display: none;
+    width: 98px;
+    height: 84px;
+    left: 6px;
+    bottom: 6px;
   }
 
-  .mounds-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .chest-pedestal-btn {
+    right: 8px;
+    bottom: 6px;
+    padding: 3px 8px;
+  }
+
+  .chest-pedestal-svg {
+    width: 52px;
+    height: 42px;
+  }
+
+  .mounds-grid,
+  .mounds-grid.grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 10px;
+  }
+
+  .mound-slot {
+    max-width: 170px;
+    max-height: 112px;
+  }
+
+  .mound-svg,
+  .mounds-grid.grid-4 .mound-svg {
+    width: 112px;
+    height: 70px;
+  }
+
+  .revealed-block,
+  .mounds-grid.grid-4 .revealed-block {
+    width: 112px;
+    height: 74px;
   }
 
   .garage-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Portrait Phone Tight Fit */
+@media (max-width: 640px) {
+  .hud-bar {
+    justify-content: center;
+  }
+
+  .stat-chip {
+    padding: 3px 8px;
+    font-size: 0.82rem;
+  }
+
+  .hud-action-btn {
+    padding: 5px 8px;
+    font-size: 0.8rem;
+  }
+
+  .eq-card,
+  .eq-drop-slot,
+  body.age5-mode .eq-card,
+  body.age5-mode .eq-drop-slot {
+    height: 52px;
+    min-width: 50px;
+    font-size: 1.55rem;
+    padding: 0 8px;
+  }
+
+  .eq-card.three-digit,
+  .eq-drop-slot.three-digit {
+    font-size: 1.25rem;
+    min-width: 58px;
+  }
+
+  .eq-card.eq-operator {
+    min-width: 20px;
+    font-size: 1.55rem;
+    padding: 0;
+  }
+
+  .amy-tag small {
+    display: none;
+  }
+
+  .amy-svg-slot {
+    width: 30px;
+    height: 32px;
+  }
+
+  .project-canvas-wrap {
+    height: 126px;
+  }
+}
+
+/* Landscape Phone Fit (e.g., 844x390 sideways phone) */
+@media (max-height: 520px) and (min-width: 540px) {
+  html,
+  body {
+    touch-action: pan-y;
+    overflow-y: auto;
+  }
+
+  .app-shell {
+    height: auto;
+    min-height: 100dvh;
+    grid-template-rows: 46px auto 1fr;
+    gap: 5px;
+    padding: 5px 8px;
+    overflow-y: visible;
+  }
+
+  .hud-bar {
+    padding: 3px 8px;
+  }
+
+  .upper-stage {
+    grid-template-columns: 0.88fr 1.32fr;
+  }
+
+  .project-header {
+    gap: 4px;
+  }
+
+  .project-tag {
+    display: none;
+  }
+
+  .project-canvas-wrap {
+    height: 120px;
+    min-height: 112px;
+  }
+
+  .crew-lanes {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    padding: 4px 8px;
+  }
+
+  .crew-card,
+  .mega-dig-btn {
+    min-height: 42px;
+  }
+
+  .crew-svg-slot {
+    width: 38px;
+    height: 28px;
+  }
+
+  .crew-card-label strong {
+    font-size: 0.74rem;
+  }
+
+  .crew-card-label small {
+    display: none;
+  }
+
+  .drive-hero-btn {
+    padding: 4px 6px;
+    font-size: 0.68rem;
+  }
+
+  .dig-ground {
+    padding: 8px 10px 8px 106px;
+    min-height: 170px;
+  }
+
+  .alexander-actor {
+    width: 92px;
+    height: 78px;
+    left: 6px;
+    bottom: 6px;
   }
 }

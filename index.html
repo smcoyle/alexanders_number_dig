@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Alexander's Math &amp; Engineering Dig!</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script defer src="js/audio.js"></script>
+  <script defer src="js/characters.js"></script>
+  <script defer src="js/projects.js"></script>
+  <script defer src="js/game.js"></script>
+</head>
+<body class="age5-mode">
+  <div id="app" class="app-shell" data-theme="day">
+    <!-- TOP HUD BAR -->
+    <header class="hud-bar" role="banner">
+      <div class="hud-left">
+        <button id="btn-title-honk" class="brand-badge tactile-btn" type="button" title="Honk Your Truck's Horn!">
+          <span class="brand-icon" id="brand-hero-emoji" aria-hidden="true">🚜</span>
+          <span class="brand-text">
+            <strong id="brand-hero-title">Alexander's Dig!</strong>
+            <small>Math &amp; Civil Engineering</small>
+          </span>
+        </button>
+
+        <button id="btn-music" class="hud-action-btn tactile-btn btn-music active" type="button" aria-label="Toggle Truck Music" title="Truckin' Music On/Off">
+          <span>🎵</span> <span class="btn-label">Music</span>
+        </button>
+      </div>
+
+      <div class="hud-center">
+        <div class="stat-chip gear-chip" title="Golden Gears Earned">
+          <span class="stat-emoji">⚙️</span>
+          <span id="stat-gears" class="stat-value">0</span>
+        </div>
+        <div class="stat-chip star-chip" title="Project Stage Progress">
+          <span class="stat-emoji">⭐</span>
+          <span id="stat-stars" class="stat-value">0 / 3</span>
+        </div>
+        <div class="stat-chip key-chip" id="key-chip" title="3 in a row earns the Magic Key for the Treasure Chest!">
+          <span class="stat-emoji">🗝️</span>
+          <span id="stat-key" class="stat-value">0 / 3</span>
+        </div>
+        <div class="stat-chip streak-chip" id="streak-chip" title="Build Streak">
+          <span class="stat-emoji">🔥</span>
+          <span id="stat-streak" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <div class="hud-right">
+        <button id="btn-projects" class="hud-action-btn tactile-btn btn-blue" type="button">
+          <span>🏗️</span> <span class="btn-label">Projects</span>
+        </button>
+        <button id="btn-garage" class="hud-action-btn tactile-btn btn-orange" type="button">
+          <span>🎨</span> <span class="btn-label">Garage</span>
+        </button>
+        <button id="btn-treasures" class="hud-action-btn tactile-btn btn-purple" type="button">
+          <span>💎</span> <span class="btn-label">Stickers</span>
+          <span id="treasure-badge" class="mini-count">0/17</span>
+        </button>
+        <button id="btn-settings" class="hud-action-btn tactile-btn btn-settings" type="button" aria-label="Grown-Ups and Modes" title="Modes, Subtraction, Drivers &amp; Voices">
+          <span>⚙️</span> <span class="btn-label">Menu</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- UPPER STAGE: CIVIL ENGINEERING BUILD + BLUEPRINT EQUATION -->
+    <section class="upper-stage" aria-label="Engineering Blueprint and Build Site">
+      <!-- Left: Civil Engineering Structure Canvas -->
+      <div class="project-panel">
+        <div class="project-header">
+          <div class="project-title-wrap">
+            <span id="project-badge" class="project-tag">STRUCTURAL</span>
+            <h1 id="project-title" class="project-title">Golden Canyon Suspension Bridge</h1>
+          </div>
+          <div id="stage-dots" class="stage-dots" aria-label="Build Stages"></div>
+        </div>
+
+        <div id="project-canvas-wrap" class="project-canvas-wrap">
+          <div id="project-svg-host" class="project-svg-host"></div>
+          <div id="crane-delivery-overlay" class="crane-delivery-overlay" aria-hidden="true"></div>
+        </div>
+
+        <div id="engineering-fact-bar" class="engineering-fact-bar">
+          <span class="fact-avatar" aria-hidden="true">📐</span>
+          <span id="engineering-fact-text" class="fact-text">Amy &amp; Greta say: Bridges span canyons using beams that add up to the exact gap!</span>
+        </div>
+      </div>
+
+      <!-- Right: Blueprint Equation, Amy Foreman & Visual Beam Comparator -->
+      <div class="blueprint-panel">
+        <div class="blueprint-screws" aria-hidden="true">
+          <span>⊕</span><span>⊕</span><span>⊕</span><span>⊕</span>
+        </div>
+
+        <div class="blueprint-top-row">
+          <button id="amy-foreman-btn" class="amy-foreman-btn tactile-btn" type="button" title="Tap Amy Foreman for help &amp; puzzle reading!">
+            <span id="amy-svg-slot" class="amy-svg-slot"></span>
+            <span class="amy-tag">
+              <strong>Amy Foreman</strong>
+              <small>Tap me!</small>
+            </span>
+          </button>
+
+          <div class="blueprint-label">
+            <span id="blueprint-subtitle">ENGINEER'S BLUEPRINT</span>
+          </div>
+
+          <div class="bp-right-controls">
+            <div class="op-pills" role="group" aria-label="Math Operation">
+              <button class="op-pill tactile-btn" data-op="add" type="button" title="Addition only">➕</button>
+              <button class="op-pill tactile-btn" data-op="sub" type="button" title="Subtraction only">➖</button>
+              <button class="op-pill tactile-btn active" data-op="mix" type="button" title="Mix Plus and Minus">➕➖</button>
+            </div>
+            <button id="btn-read-problem" class="speak-problem-btn tactile-btn" type="button" title="Hear Amy read the puzzle">
+              🔊
+            </button>
+          </div>
+        </div>
+
+        <!-- Equation Cards -->
+        <div id="equation-row" class="equation-row" role="region" aria-label="Math Equation">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Visual Proportional Beam Comparator (tappable spaces to count!) -->
+        <div id="beam-comparator" class="beam-comparator" aria-label="Visual Beam Length Ruler">
+          <div class="comparator-header">
+            <span id="comparator-hint-label" class="comparator-hint-label">
+              Tap the empty boxes to count!
+            </span>
+            <span id="comparator-unit-badge" class="comparator-unit-badge">Meters (m)</span>
+          </div>
+          <div id="beam-track-area" class="beam-track-area"></div>
+        </div>
+
+        <!-- Friendly Feedback Toast inside Blueprint -->
+        <div id="blueprint-feedback" class="blueprint-feedback" aria-live="polite">
+          Tap a dirt pile below so your truck can dig up numbers!
+        </div>
+      </div>
+    </section>
+
+    <!-- LOWER STAGE: CONSTRUCTION DIG YARD & PLAYABLE TRUCK CREW -->
+    <main class="dig-stage" aria-label="Construction Dig Site">
+      <div class="sky-backdrop" aria-hidden="true">
+        <div class="sun-orb"></div>
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="distant-hills"></div>
+      </div>
+
+      <!-- Dynamic Crew Action Yard (3 Standby Trucks + Drive! buttons + DIG NEXT!) -->
+      <div id="crew-lanes" class="crew-lanes">
+        <!-- Populated dynamically by game.js -->
+      </div>
+
+      <!-- Interactive Dirt Ground & Dig Mounds -->
+      <div id="dig-ground" class="dig-ground">
+        <div class="caution-ribbon" aria-hidden="true"></div>
+        <div id="mounds-grid" class="mounds-grid grid-4"></div>
+
+        <!-- Active Playable Hero Truck Actor -->
+        <div id="alexander-actor" class="alexander-actor hero-alexander" role="button" tabindex="0" aria-label="Active Truck — Tap to honk!">
+          <div id="alexander-bubble" class="alexander-bubble hidden" aria-live="polite">GEE! COOOOL!</div>
+          <div id="alexander-svg-host" class="alexander-svg-host"></div>
+          <div id="alexander-held-block" class="alexander-held-block hidden"></div>
+        </div>
+
+        <!-- Buried Magic Treasure Chest Pedestal (appears when dug up!) -->
+        <button id="chest-pedestal-btn" class="chest-pedestal-btn tactile-btn hidden" type="button" title="Unlock with Magic Key!">
+          <div id="chest-pedestal-svg" class="chest-pedestal-svg"></div>
+          <span id="chest-pedestal-label" class="chest-pedestal-label">🔒 Need Key!</span>
+        </button>
+
+        <!-- Roaming Animated Supporting Trucks Layer -->
+        <div id="roaming-fx-layer" class="roaming-fx-layer" aria-hidden="true"></div>
+
+        <!-- Particle Layer -->
+        <div id="particle-layer" class="particle-layer" aria-hidden="true"></div>
+      </div>
+
+      <!-- Sandbox Quick Controls -->
+      <div id="sandbox-controls" class="sandbox-controls hidden">
+        <button id="btn-sandbox-grade" class="tactile-btn btn-purple" type="button">📐 Greta: Fresh Dirt Piles!</button>
+        <button id="btn-sandbox-clear" class="tactile-btn btn-orange" type="button">🔄 Clear Balance</button>
+      </div>
+    </main>
+
+    <!-- DRAG GHOST LAYER -->
+    <div id="drag-ghost" class="drag-ghost hidden" aria-hidden="true"></div>
+
+    <!-- MODAL: MAGIC TREASURE CHEST (CONTAINS THIS VERY VIDEO GAME!) -->
+    <div id="chest-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="chest-modal-title">
+      <div class="modal-card chest-modal-card">
+        <div class="modal-header">
+          <h2 id="chest-modal-title">✨ Magic Treasure Chest Unlocked! ✨</h2>
+          <button class="close-modal-btn tactile-btn" data-close-modal="chest-modal" type="button">✕</button>
+        </div>
+        <p id="chest-modal-sub" class="chest-modal-sub">Whoa!! Inside the chest is a miniature ThinkPad running... a copy of THIS VERY VIDEO GAME!</p>
+
+        <!-- Miniature ThinkPad Laptop with Red TrackPoint Nub! -->
+        <div class="thinkpad-bezel">
+          <div class="thinkpad-top-bar">
+            <span class="tp-cam">●</span>
+            <span class="tp-brand">ThinkPad Mini — Depth <strong id="inception-depth">1</strong></span>
+            <span class="tp-badge">+15 ⚙️</span>
+          </div>
+          <div class="thinkpad-screen" id="mini-game-screen">
+            <div class="mini-hud">
+              <span>🚜 Alexander's Dig! (Mini)</span>
+              <span id="mini-stage-text">Solved: 0</span>
+            </div>
+            <div class="mini-blueprint">
+              <span id="mini-eq-text">1 + ? = 2</span>
+              <span id="mini-feedback" class="mini-feedback">Tap a tiny dirt pile!</span>
+            </div>
+            <div class="mini-yard" id="mini-yard">
+              <!-- Populated dynamically by mini game loop -->
+            </div>
+          </div>
+          <div class="thinkpad-keyboard">
+            <div class="tp-keys-row"></div>
+            <div class="tp-trackpoint" title="Iconic ThinkPad Red Nub!"></div>
+            <div class="tp-keys-row"></div>
+            <div class="tp-trackpad"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: GROWN-UPS, MODES & VOICES -->
+    <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+      <div class="modal-card drawer-card settings-card">
+        <div class="modal-header">
+          <h2 id="settings-modal-title">⚙️ Grown-Ups, Difficulty Modes &amp; Voices</h2>
+          <button class="close-modal-btn tactile-btn" data-close-modal="settings-modal" type="button">✕</button>
+        </div>
+
+        <div class="settings-section">
+          <h3>🎮 Difficulty Mode</h3>
+          <div class="settings-modes-grid">
+            <button class="mode-card tactile-btn active" data-mode="age5" type="button">
+              <span class="mode-emoji">🧒</span>
+              <strong>Age 5 (Easy)</strong>
+              <small>4 big piles • 3 builds • tap-count ruler</small>
+            </button>
+            <button class="mode-card tactile-btn" data-mode="foreman" type="button">
+              <span class="mode-emoji">👷</span>
+              <strong>Foreman (≤10)</strong>
+              <small>6 piles • 5 builds • sums up to 10</small>
+            </button>
+            <button class="mode-card tactile-btn" data-mode="master" type="button">
+              <span class="mode-emoji">🎓</span>
+              <strong>Big Kid (≤20)</strong>
+              <small>6 piles • 5 builds • sums up to 20</small>
+            </button>
+            <button class="mode-card tactile-btn" data-mode="sandbox" type="button">
+              <span class="mode-emoji">🧱</span>
+              <strong>Free Sandbox</strong>
+              <small>Combine any two beams freely!</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>➕➖ Math Operations</h3>
+          <div class="audio-toggles-row">
+            <button class="tactile-btn toggle-pill op-card-btn active" data-op="mix" type="button">➕➖ Mix Plus &amp; Minus</button>
+            <button class="tactile-btn toggle-pill op-card-btn" data-op="add" type="button">➕ Addition Only</button>
+            <button class="tactile-btn toggle-pill op-card-btn" data-op="sub" type="button">➖ Subtraction Only</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>🔊 Audio, Music &amp; Voices</h3>
+          <div class="audio-toggles-row">
+            <button id="btn-setting-music" class="tactile-btn toggle-pill active" type="button">🎵 Truck Music: ON</button>
+            <button id="btn-setting-sound" class="tactile-btn toggle-pill active" type="button">🔊 Sound FX: ON</button>
+            <button id="btn-setting-voice" class="tactile-btn toggle-pill active" type="button">🗣️ Voices: ON</button>
+          </div>
+          <label class="volume-row" for="music-volume-slider">
+            <span>🎵 Music Volume:</span>
+            <input id="music-volume-slider" type="range" min="0" max="100" value="65" />
+            <strong id="music-volume-val">65%</strong>
+          </label>
+
+          <div class="voice-pickers-grid">
+            <div class="voice-picker-box">
+              <label for="select-amy-voice">👩‍🔧 Amy Foreman Voice:</label>
+              <div class="voice-select-row">
+                <select id="select-amy-voice"></select>
+                <button id="btn-test-amy" class="tactile-btn btn-purple" type="button">Test</button>
+              </div>
+            </div>
+            <div class="voice-picker-box">
+              <label for="select-foreman-voice">👷 Crew Dude Voice:</label>
+              <div class="voice-select-row">
+                <select id="select-foreman-voice"></select>
+                <button id="btn-test-foreman" class="tactile-btn btn-blue" type="button">Test</button>
+              </div>
+            </div>
+            <div class="voice-picker-box">
+              <label for="select-alex-voice">🚜 Kiddie Truck Voice:</label>
+              <div class="voice-select-row">
+                <select id="select-alex-voice"></select>
+                <button id="btn-test-alex" class="tactile-btn btn-orange" type="button">Test</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PROJECT CELEBRATION PARADE -->
+    <div id="celebration-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="celeb-title">
+      <div class="modal-card celebration-card">
+        <div class="celeb-confetti" id="celeb-confetti" aria-hidden="true"></div>
+        <div class="celeb-badge">🏆 ENGINEERING MARVEL COMPLETE! 🏆</div>
+        <h2 id="celeb-title" class="celeb-title">Golden Canyon Suspension Bridge Built!</h2>
+        <p id="celeb-subtitle" class="celeb-subtitle">Tap any character in the victory parade to honk or cheer!</p>
+        <div id="celeb-scene" class="celeb-scene"></div>
+        <div class="celeb-parade-trucks" id="celeb-parade-trucks"></div>
+        <div class="celeb-rewards-row">
+          <span class="reward-pill">⚙️ +10 Bonus Gears</span>
+          <span class="reward-pill">👷 Master Civil Engineer!</span>
+        </div>
+        <div class="celeb-actions">
+          <button id="btn-next-project" class="tactile-btn btn-green big-btn" type="button">
+            🚧 Build Next Project! →
+          </button>
+          <button id="btn-replay-project" class="tactile-btn btn-blue" type="button">
+            🔁 Build Again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PROJECT PICKER -->
+    <div id="projects-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="projects-modal-title">
+      <div class="modal-card drawer-card">
+        <div class="modal-header">
+          <h2 id="projects-modal-title">🏗️ Choose a Civil Engineering Project</h2>
+          <button class="close-modal-btn tactile-btn" data-close-modal="projects-modal" type="button">✕</button>
+        </div>
+        <p class="modal-intro">Every math problem builds a real piece of the structure! Pick what to build next:</p>
+        <div id="projects-list" class="projects-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: GARAGE (PLAYABLE TRUCK SELECTOR, PAINTS & HATS) -->
+    <div id="garage-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="garage-modal-title">
+      <div class="modal-card drawer-card">
+        <div class="modal-header">
+          <h2 id="garage-modal-title">🎨 Truck Crew Garage &amp; Customizer</h2>
+          <button class="close-modal-btn tactile-btn" data-close-modal="garage-modal" type="button">✕</button>
+        </div>
+        <div class="garage-driver-bar" id="garage-driver-bar"></div>
+        <div class="garage-layout">
+          <div class="garage-preview">
+            <div id="garage-preview-svg" class="garage-preview-svg"></div>
+            <div class="garage-gear-bank">Your Gears: <strong id="garage-gears-count">0</strong> ⚙️</div>
+          </div>
+          <div class="garage-options">
+            <h3>🚜 Paint Colors</h3>
+            <div id="garage-paints" class="garage-items-grid"></div>
+            <h3>🎩 Hard Hats &amp; Gear</h3>
+            <div id="garage-hats" class="garage-items-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: BURIED TREASURE STICKER BOOK -->
+    <div id="treasures-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="treasures-modal-title">
+      <div class="modal-card drawer-card">
+        <div class="modal-header">
+          <h2 id="treasures-modal-title">💎 Buried Treasure Sticker Cabinet</h2>
+          <button class="close-modal-btn tactile-btn" data-close-modal="treasures-modal" type="button">✕</button>
+        </div>
+        <p class="modal-intro">Dig up dirt mounds to discover hidden fossils, golden tools, and Magic Chest treasures!</p>
+        <div id="treasures-grid" class="treasures-grid"></div>
+      </div>
+    </div>
+
+    <!-- TREASURE DISCOVERY POPUP TOAST -->
+    <div id="treasure-toast" class="treasure-toast hidden" aria-live="polite">
+      <span id="treasure-toast-emoji" class="tt-emoji">🦴</span>
+      <div class="tt-copy">
+        <strong id="treasure-toast-title">Treasure Found!</strong>
+        <small id="treasure-toast-desc">T-Rex Tooth!</small>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
